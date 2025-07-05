@@ -6,8 +6,8 @@ A simple web application that converts uploaded PDF files into audiobooks (MP3 f
 
 *   **PDF Upload**: Users can upload PDF files through a web interface.
 *   **Text Extraction**: Extracts text content from the uploaded PDFs.
-*   **Text-to-Speech**: Converts the extracted text into an MP3 audio file using Google Gemini API.
-*   **Audio Download**: Users can download the generated MP3 audio file.
+*   **Text-to-Speech**: Converts the extracted text into a WAV audio file using Google Gemini API (Gemini 2.5 Pro TTS).
+*   **Audio Download**: Users can download the generated WAV audio file.
 *   **Conversion History**: Displays a list of past conversions with their status (Uploaded, Processing, Completed, Failed).
 *   **Simple UI**: A clean and straightforward user interface.
 
@@ -16,7 +16,7 @@ A simple web application that converts uploaded PDF files into audiobooks (MP3 f
 *   **Backend**: Python, Flask
 *   **Database**: SQLite (via Flask-SQLAlchemy)
 *   **PDF Processing**: `pdfplumber`
-*   **Text-to-Speech**: Google Gemini API (`google-generativeai` Python SDK, specifically `models/text-to-speech`)
+*   **Text-to-Speech**: Google Gemini API (`google-generativeai` Python SDK, specifically `gemini-2.5-pro-preview-tts` model)
 *   **Frontend**: Basic HTML, CSS, and minimal JavaScript.
 
 ## Project Structure
@@ -91,7 +91,7 @@ A simple web application that converts uploaded PDF files into audiobooks (MP3 f
 5.  The status will change to "Processing". Wait for the conversion to complete. This may take some time depending on the PDF size and API response time.
     *   *Note: The conversion is synchronous in this version, so the page might appear to hang during processing.*
 6.  Once completed, the status will change to "Completed", and a "Download Audio" button will appear.
-7.  Click "Download Audio" to save the MP3 file.
+7.  Click "Download Audio" to save the WAV file.
 8.  If an error occurs, the status will change to "Failed", and an error message will be displayed.
 
 ## Limitations & Future Improvements

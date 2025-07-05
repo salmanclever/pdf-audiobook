@@ -6,7 +6,7 @@ This document provides guidance for AI agents working on the "PDF to Audiobook C
 
 The application is a Flask-based web tool that allows users to:
 1. Upload PDF files.
-2. Convert the text content of these PDFs into audio (MP3) using Google's Gemini API (specifically, the text-to-speech capabilities).
+2. Convert the text content of these PDFs into audio (WAV format) using Google's Gemini API (specifically, the `gemini-2.5-pro-preview-tts` model).
 3. Download the generated audio files.
 4. View a history of their conversions.
 
@@ -17,7 +17,7 @@ The project uses Python, Flask, Flask-SQLAlchemy (with SQLite), and the `google-
 - `app.py`: Main Flask application file. Contains routes, database models, business logic for PDF processing, and Gemini API interaction.
 - `templates/index.html`: Main HTML template for the user interface.
 - `static/style.css`: CSS styles for the application.
-- `static/audio/`: Directory where generated MP3 audio files are stored.
+- `static/audio/`: Directory where generated WAV audio files are stored.
 - `uploads/`: Directory where uploaded PDF files are stored.
 - `db.sqlite3`: The SQLite database file (created automatically).
 - `venv/`: Python virtual environment (if used locally).
@@ -49,12 +49,14 @@ The project uses Python, Flask, Flask-SQLAlchemy (with SQLite), and the `google-
     *   Provide informative feedback to the user via flashed messages. Log detailed errors on the server.
 
 6.  **Gemini API Usage**:
-    *   The application uses the `models/text-to-speech` model via the `google-generativeai` library.
+    *   The application now uses the `gemini-2.5-pro-preview-tts` model via the `google-generativeai` library, using the `generate_content` method with `response_modalities=["AUDIO"]`.
+    *   The output audio format is WAV.
     *   Refer to the official Google AI Gemini API documentation for details on TTS capabilities, supported voices, limits, and best practices:
         *   Gemini models: [https://ai.google.dev/gemini-api/docs/models](https://ai.google.dev/gemini-api/docs/models) (especially the section on Gemini 2.5 Pro TTS)
-        *   Speech Generation guide: [https://ai.google.dev/gemini-api/docs/speech-generation](https://ai.google.dev/gemini-api/docs/speech-generation)
+        *   Speech Generation guide: [https://ai.google.dev/gemini-api/docs/speech-generation](https://ai.google.dev/gemini-api/docs/speech-generation) (Note: some general speech generation docs might refer to other models/methods; the `gemini-2.5-pro-preview-tts` usage pattern observed in user-provided examples is key).
     *   Be mindful of API quotas and potential costs.
     *   The current implementation has a basic text truncation for very long texts. For production, a more sophisticated chunking mechanism for large PDFs would be necessary to handle API limits for input text length.
+    *   The code currently attempts to use a default voice by not specifying a `speech_config` in the `GenerationConfig`. If specific voices are needed, this would be added to the `GenerationConfig`.
 
 7.  **UI/UX**:
     *   The UI aims to be "modern and beautiful" but also "as simple as it can be."
