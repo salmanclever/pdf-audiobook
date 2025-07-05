@@ -12,6 +12,7 @@ DATABASE = 'database.db'
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['AUDIO_FOLDER'] = AUDIO_FOLDER
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'dev_secret_key_please_change_in_prod') # Added secret key
 
 # Ensure upload and audio directories exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
