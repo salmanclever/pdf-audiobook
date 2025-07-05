@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Audiobook</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; color: #333; }
+        .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { color: #5a5a5a; text-align: center; }
+        .upload-form, .history-table { margin-top: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input[type="file"] { margin-bottom: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: calc(100% - 18px); }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background-color: #0056b3; }
+        .progress-bar { width: 100%; background-color: #e9ecef; border-radius: 4px; margin-bottom: 10px; display: none; }
+        .progress-bar-fill { height: 20px; background-color: #28a745; border-radius: 4px; text-align: center; color: white; line-height: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f8f9fa; }
+        .download-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 5px 10px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .download-btn:hover { background-color: #1e7e34; }
+        .status-pending { color: #ffc107; }
+        .status-processing { color: #007bff; }
+        .status-completed { color: #28a745; }
+        .status-error { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PDF to Audiobook Converter</h1>
+
+        <div class="upload-form">
+            <h2>Upload PDF</h2>
+            <form id="uploadForm" action="{{ url_for('upload_pdf') }}" method="post" enctype="multipart/form-data">
+                <label for="pdfFile">Choose a PDF file:</label>
+                <input type="file" name="pdfFile" id="pdfFile" accept=".pdf" required>
+                <!-- Basic client-side validation message area -->
+                <div id="fileError" style="color: red; margin-bottom: 10px;"></div>
+                <div class="progress-bar" id="uploadProgressBar">
+                    <div class="progress-bar-fill" id="uploadProgressFill">0%</div>
+                </div>
+                <button type="submit" id="convertButton">Convert to Audiobook</button>
+            </form>
+        </div>
+
+        <div id="conversionStatus" style="margin-top: 20px; font-weight: bold;"></div>
+        <!-- Flash messages area -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages" style="margin-top:15px;">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="history-table">
+            <h2>Conversion History</h2>
+            <table id="historyTable">
+                <thead>
+                    <tr>
+                        <th>Original Filename</th>
+                        <th>Upload Date</th>
+                        <th>Status</th>
+                        <th>Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- History rows will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Basic JavaScript for upload progress (conceptual)
+        const uploadForm = document.getElementById('uploadForm');
+        const pdfFile = document.getElementById('pdfFile');
+        const uploadProgressBar = document.getElementById('uploadProgressBar');
+        const uploadProgressFill = document.getElementById('uploadProgressFill');
+        const conversionStatus = document.getElementById('conversionStatus');
+        const convertButton = document.getElementById('convertButton');
+        const fileError = document.getElementById('fileError');
+
+        pdfFile.addEventListener('change', function() {
+            fileError.textContent = ''; // Clear previous errors
+            if (this.files.length > 0) {
+                const fileName = this.files[0].name;
+                if (!fileName.toLowerCase().endsWith('.pdf')) {
+                    fileError.textContent = 'Please select a PDF file.';
+                    convertButton.disabled = true;
+                    return;
+                }
+                convertButton.disabled = false;
+            } else {
+                convertButton.disabled = true;
+            }
+        });
+
+
+        uploadForm.addEventListener('submit', function(event) {
+            fileError.textContent = '';
+            if (pdfFile.files.length === 0) {
+                event.preventDefault();
+                fileError.textContent = 'Please select a file to upload.';
+                return;
+            }
+            if (!pdfFile.files[0].name.toLowerCase().endsWith('.pdf')) {
+                event.preventDefault();
+                fileError.textContent = 'Invalid file type. Only PDF files are allowed.';
+                return;
+            }
+
+            // Basic progress simulation for direct form submission
+            // For actual AJAX progress, we'd need to handle the upload with XMLHttpRequest
+            if (pdfFile.files.length > 0) {
+                uploadProgressBar.style.display = 'block';
+                uploadProgressFill.style.width = '0%';
+                uploadProgressFill.textContent = '0%';
+                conversionStatus.textContent = 'Uploading...';
+                convertButton.disabled = true;
+
+                // Simulate upload progress
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 20; // Simulate chunk upload
+                    if (progress <= 100) {
+                        uploadProgressFill.style.width = progress + '%';
+                        uploadProgressFill.textContent = progress + '%';
+                    } else {
+                        clearInterval(interval);
+                        // Note: With direct form submission, the page will reload.
+                        // Real progress needs AJAX. This is just a visual cue.
+                        conversionStatus.textContent = 'Upload complete. Processing...';
+                    }
+                }, 300); // Adjust timing as needed
+            }
+        });
+
+        // Function to refresh history (will be called after conversion or periodically)
+        async function fetchHistory() {
+            const response = await fetch("{{ url_for('get_history') }}");
+            const history = await response.json();
+            const historyTableBody = document.getElementById('historyTable').getElementsByTagName('tbody')[0];
+            historyTableBody.innerHTML = ''; // Clear existing rows
+
+            if (history.length === 0) {
+                const row = historyTableBody.insertRow();
+                const cell = row.insertCell();
+                cell.colSpan = 4;
+                cell.textContent = 'No conversions yet.';
+                cell.style.textAlign = 'center';
+            } else {
+                history.forEach(item => {
+                    const row = historyTableBody.insertRow();
+                    row.insertCell().textContent = item.original_filename;
+                    row.insertCell().textContent = new Date(item.created_at).toLocaleString();
+                    const statusCell = row.insertCell();
+                    statusCell.textContent = item.status.charAt(0).toUpperCase() + item.status.slice(1);
+                    statusCell.className = `status-${item.status}`;
+
+                    const downloadCell = row.insertCell();
+                    if (item.status === 'completed' && item.audio_filename) {
+                        const link = document.createElement('a');
+                        link.href = "{{ url_for('download_audio', filename='') }}/" + item.audio_filename;
+                        link.textContent = 'Download';
+                        link.className = 'download-btn';
+                        downloadCell.appendChild(link);
+                    } else {
+                        downloadCell.textContent = 'N/A';
+                    }
+                });
+            }
+        }
+
+        // Fetch history on page load
+        document.addEventListener('DOMContentLoaded', fetchHistory);
+    </script>
+</body>
+</html>
