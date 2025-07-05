@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Audiobook</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>PDF to Audiobook Converter</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="messages">
+                {% for category, message in messages %}
+                    <div class="message {{ category }}">{{ message }}</div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" enctype="multipart/form-data" class="upload-form">
+            <h2>Upload PDF</h2>
+            <div class="form-group">
+                <label for="file">Choose PDF file:</label>
+                <input type="file" name="file" id="file" accept=".pdf" required>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Upload PDF</button>
+            </div>
+        </form>
+
+        <div class="progress-section" id="upload-progress-section" style="display:none;">
+            <h3>Upload Progress</h3>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="upload-progress-bar" style="width:0%">0%</div>
+            </div>
+        </div>
+
+        <h2>Conversion History</h2>
+        {% if conversions %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>PDF Filename</th>
+                    <th>Upload Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for conversion in conversions %}
+                <tr>
+                    <td>{{ conversion.id }}</td>
+                    <td>{{ conversion.pdf_filename }}</td>
+                    <td>{{ conversion.upload_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td>
+                        <span class="status status-{{ conversion.status.lower() }}">{{ conversion.status }}</span>
+                    </td>
+                    <td>
+                        {% if conversion.status == 'Uploaded' %}
+                            <form method="POST" action="{{ url_for('start_conversion', conversion_id=conversion.id) }}" style="display:inline;">
+                                <button type="submit" class="btn btn-convert">Convert to Audio</button>
+                            </form>
+                        {% elif conversion.status == 'Processing' %}
+                            <span class="text-muted">Processing...</span>
+                            <div class="progress-section" id="conversion-progress-section-{{ conversion.id }}">
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" id="conversion-progress-bar-{{ conversion.id }}" style="width:0%">0%</div>
+                                </div>
+                            </div>
+                        {% elif conversion.status == 'Completed' and conversion.audio_filename %}
+                            <a href="{{ url_for('download_audio', filename=conversion.audio_filename) }}" class="btn btn-download">Download Audio</a>
+                        {% elif conversion.status == 'Failed' %}
+                            <span class="text-danger">Conversion Failed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No conversions yet. Upload a PDF to get started!</p>
+        {% endif %}
+
+    </div>
+
+    <script>
+        const uploadForm = document.querySelector('.upload-form');
+        const uploadProgressSection = document.getElementById('upload-progress-section');
+        const uploadProgressBar = document.getElementById('upload-progress-bar');
+
+        if (uploadForm) {
+            uploadForm.addEventListener('submit', function(event) {
+                const fileInput = document.getElementById('file');
+                if (fileInput.files.length > 0) {
+                    uploadProgressSection.style.display = 'block';
+                    // Simulate progress for now, will be replaced by actual XHR progress
+                    let progress = 0;
+                    const interval = setInterval(() => {
+                        progress += 10;
+                        if (progress <= 100) {
+                            uploadProgressBar.style.width = progress + '%';
+                            uploadProgressBar.textContent = progress + '%';
+                        } else {
+                            clearInterval(interval);
+                        }
+                    }, 200);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
